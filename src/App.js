@@ -14,7 +14,7 @@ function App() {
   const fetchWikiData = async () => {
     if (!query.trim()) return;
 
-    const response = await fetch("http://localhost:8000/wiki", {
+    const response = await fetch("https://wikisearch-backend.onrender.com/wiki", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
