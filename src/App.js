@@ -5,30 +5,52 @@ import {
   Button,
   Typography,
   Box,
+  CircularProgress,
 } from "@mui/material";
 
 function App() {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchWikiData = async () => {
     if (!query.trim()) return;
 
-    const response = await fetch("https://wikisearch-backend.onrender.com/wiki", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query }),
-    });
+    setLoading(true);
+    setError("");
+    setAnswer("");
 
-    const data = await response.json();
-    setAnswer(data.result);
+    try {
+      const response = await fetch(
+        "https://wikisearch-backend.onrender.com/wiki",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
+      const data = await response.json();
+      setAnswer(data.result);
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 6, backgroundColor: "#ffffff", p: 4, borderRadius: 2 }}>
-      
+    <Container
+      maxWidth="md"
+      sx={{ mt: 6, backgroundColor: "#ffffff", p: 4, borderRadius: 2 }}
+    >
       {/* Application Title */}
       <Typography
         variant="h3"
@@ -65,22 +87,33 @@ function App() {
               fontFamily: "'Short Stack', cursive",
               fontSize: "16px",
               backgroundColor: "#222222",
-              color: "#ffffff"
+              color: "#ffffff",
             },
           }}
         />
 
-        <Button
-          variant="contained"
-          onClick={fetchWikiData}
-        >
+        <Button variant="contained" onClick={fetchWikiData} disabled={loading}>
           <Typography fontFamily={"'Bowlby One', sans-serif"}>
             Search
           </Typography>
         </Button>
       </Box>
 
-      {/* Result Content (NO BOX) */}
+      {/* Loading Spinner */}
+      {loading && (
+        <Box display="flex" justifyContent="center" mb={2}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <Typography color="error" textAlign="center" mb={2}>
+          {error}
+        </Typography>
+      )}
+
+      {/* Result Content */}
       {answer && (
         <Typography
           variant="body1"
@@ -90,13 +123,12 @@ function App() {
             textAlign: "justify",
             fontFamily: "'Short Stack', cursive",
             fontSize: "18px",
-            color: "#222222"
+            color: "#222222",
           }}
         >
           {answer}
         </Typography>
       )}
-
     </Container>
   );
 }
